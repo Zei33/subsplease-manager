@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+		<title>SubsPlease Manager</title>
+		
+		<meta charset="UTF-8">
+		<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';">
+		
+		<link rel="stylesheet" href="./styles/font-awesome/all.css">
+		<link rel="stylesheet" href="./styles/main.css">
+		<link id="current-font" rel="stylesheet" href="./styles/OpenSans.css">
+		
+		<script>
+			if (typeof module === 'object') {
+				window.module = module; 
+				module = undefined;
+			}
+			
+			window.$ = window.jQuery = require('jquery');
+			const { remote, ipcRenderer, shell } = require('electron');
+			const fs = require('fs');
+			const path = require('path');
+			const https = require('https');
+			const got = require('got');
+			
+			$(window).on("keydown", function(e){
+				if (e.key == "Escape"){
+					ipcRenderer.send("close-window", {"close" : "window"});
+				}
+			});
+			
+			if (window.module) module = window.module;
+			
+			const baseURL = "https://subsplease.org";
+		</script>
+		
+		<script src="./scripts/general.js"></script>
+		<script id="startup-script" src="./scripts/startup.js"></script>
+	</head>
+	
+	<body></body>
+</html>
