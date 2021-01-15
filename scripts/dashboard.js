@@ -1,10 +1,18 @@
 recentlyAired = [];
 
-function addShow(element, show){
+function addShow(element, show, controls){
 	$(element).append($(`
-		<div class="dashboard-row-item" data-show="${show.title}" data-image="${show.image}">
-			<div class="dashboard-row-item-info">
-				<div class="dashboard-row-item-show-title">${show.title} - ${(show.number == undefined ? "" : "Episode " + show.number)}</div>
+		<div class="dashboard-item-container" data-show="${show.title}" data-image="${show.image}">
+			<div class="dashboard-item">
+				<div class="dashboard-item-image"></div><!--
+			 --><div class="dashboard-item-controls">
+					${(controls.download ? '<div class="dashboard-item-control">Download Episode</div>' : '')}<!--
+				 -->${(controls.view ? '<div class="dashboard-item-control">View Series</div>' : '')}
+				</div>
+			</div><!--
+		 --><div class="dashboard-item-info">
+				<div class="dashboard-item-info-title">${show.title}</div>
+				<small class="dashboard-item-info-episode">${(show.number == undefined ? "" : "Episode " + show.number)}</small>
 			</div>
 		</div>
 	`));
@@ -17,15 +25,25 @@ function updateUpcoming(){
 	$("#upcoming-episodes").html("");
 	for (const show of series.shows){
 		if (show.day == currentDay && !recentlyAired.includes(show.title)){
-			addShow("#upcoming-episodes", show);
-			$(`.dashboard-row-item[data-image="${show.image}"]`).css("background-image", `url('.${path.sep}cache${path.sep}${show.image}')`);
+			console.log(show.day + " " + currentDay + ": " + show.title);
+			addShow("#upcoming-episodes", show, { view: true });
+			if (show.image.length > 0){
+				$(`.dashboard-item-container[data-image="${show.image}"] .dashboard-item-image`).css("background-image", `url('.${path.sep}cache${path.sep}${show.image}')`);
+			}else{
+				$(`.dashboard-item-container[data-image="${show.image}"] .dashboard-item`).css("animation", `hue 15s ease infinite`);
+			}
 		}
 	}
 	
 	for (const show of series.shows){
 		if (show.day == tomorrowDay && !recentlyAired.includes(show.title)){
-			addShow("#upcoming-episodes", show);
-			$(`.dashboard-row-item[data-image="${show.image}"]`).css("background-image", `url('.${path.sep}cache${path.sep}${show.image}')`);
+			console.log(show.day + " " + currentDay + ": " + show.title);
+			addShow("#upcoming-episodes", show, { view: true });
+			if (show.image.length > 0){
+				$(`.dashboard-item-container[data-image="${show.image}"] .dashboard-item-image`).css("background-image", `url('.${path.sep}cache${path.sep}${show.image}')`);
+			}else{
+				$(`.dashboard-item-container[data-image="${show.image}"] .dashboard-item`).css("animation", `hue 15s ease infinite`);
+			}
 		}
 	}
 }
@@ -45,6 +63,7 @@ function updateRecent(){
 	
 	Promise.all(promises)
 		.then((data) => {
+			$("#recent-episodes").html("");
 			for (var i = 0;i <= data.length;i++){
 				for (const episode in data[i]){
 					var fileName = (data[i][episode].image_url.length > 0 ? path.basename(data[i][episode].image_url) : "");
@@ -52,11 +71,11 @@ function updateRecent(){
 						title: data[i][episode].show,
 						number: data[i][episode].episode,
 						image: fileName
-					});
+					}, { view: true, download: true });
 					if (i <= 1){
 						recentlyAired.push(data[i][episode].show);
-						$(`#upcoming-episodes .dashboard-row-item[data-show="${data[i][episode].show}"]`).animate({width: "0px", opacity: "0"});
-						$(`#upcoming-episodes .dashboard-row-item[data-show="${data[i][episode].show}"]`).queue(function() {
+						$(`#upcoming-episodes .dashboard-item-container[data-show="${data[i][episode].show}"]`).animate({width: "0px", opacity: "0"});
+						$(`#upcoming-episodes .dashboard-item-container[data-show="${data[i][episode].show}"]`).queue(function() {
 							setTimeout(() => {
 								$(this).remove();
 								$(this).dequeue();
@@ -72,11 +91,13 @@ function updateRecent(){
 							  console.log(`ERROR: ${error}`);
 							}).on('close', () => {
 								resolve(true);
-								$(`.dashboard-row-item[data-image="${fileName}"]`).css("background-image", `url('.${path.sep}cache${path.sep}${fileName}')`);
+								$(`.dashboard-item-container[data-image="${fileName}"] .dashboard-item-image`).css("background-image", `url('.${path.sep}cache${path.sep}${fileName}')`);
 							});
 						});
+					}else if (fileName.length == 0){
+						$(`.dashboard-item-container[data-image="${fileName}"] .dashboard-item`).css("animation", "hue 15s ease infinite");
 					}else{
-						$(`.dashboard-row-item[data-image="${fileName}"]`).css("background-image", `url('.${path.sep}cache${path.sep}${fileName}')`);
+						$(`.dashboard-item-container[data-image="${fileName}"] .dashboard-item-image`).css("background-image", `url('.${path.sep}cache${path.sep}${fileName}')`);
 					}
 				}
 			}
@@ -86,9 +107,9 @@ function updateRecent(){
 
 fs.readFile(remote.app.getAppPath() + `${path.sep}dashboard.html`, "utf-8", (error, data) => $("body").html(data));
 $(() => {
-	updateUpcoming();
-	setInterval(updateUpcoming, 5 * 1000);
+	setTimeout(updateUpcoming, 10);
+	setInterval(updateUpcoming, 1000 * 1000);
 	
-	updateRecent();
-	setInterval(updateRecent, 120 * 1000);
+	setTimeout(updateRecent, 10);
+	setInterval(updateRecent, 1000 * 1000);
 });

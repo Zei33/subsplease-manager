@@ -59,6 +59,7 @@ $(() => {
 				const promises = [];
 				var totalShows = 0;
 				var totalShowsComplete = 0;
+				series.shows = [];
 				for (const day in data.schedule){
 					for (const show of data.schedule[day]){
 						var fileName = (show.image_url.length > 0 ? path.basename(show.image_url) : "");
@@ -111,7 +112,7 @@ $(() => {
 	
 	var loadCompletionCheck = setInterval(() => {
 		$(".loading-progress").css("width", progress + "%");
-		if (progress >= 100){
+		if (progress > 99){
 			$("#loading-status").html("Loading complete...");
 			setTimeout(() => {
 				$("#loading-status, .loading-bar").animate({opacity: 0, height: 0}, () => {
